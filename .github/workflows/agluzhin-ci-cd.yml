@@ -77,12 +77,18 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           script: |
-            cd myapp/agluzhin_app
+            mkdir -p /root/app
+            cd /root/app
+            
+            if [ ! -d ".git" ]; then
+              git clone https://github.com/agluzhin/github-actions-hw.git .
+            else
+              git pull origin main
+            fi
+            
             docker stop agluzhin-container 2>/dev/null || echo "Container not running"
             docker rm agluzhin-container 2>/dev/null || echo "Container already removed"
             docker rmi agluzhin-app:latest 2>/dev/null || echo "Image not found"
-
-            git pull origin main
-            docker build -t agluzhin-app:latest .
             
+            docker build -t agluzhin-app:latest .
             docker run -d --name agluzhin-container -p 8080:8080 agluzhin-app:latest
